@@ -1,0 +1,326 @@
+#include <SoftwareSerial.h>
+#include <stdio.h>
+#include <Servo.h>
+// Declare the Servo pin
+int servoPin = 6;
+//SIM800 TX is connected to Arduino D8
+#define SIM800_TX_PIN 8
+Servo Servo1;
+//SIM800 RX is connected to Arduino D7
+#define SIM800_RX_PIN 7
+#define clrPin 2
+#define htrPin 3
+#define l1Pin 4
+#define l2Pin 5
+#define mtrPin 6
+//Create software serial object to communicate with SIM800
+SoftwareSerial serialSIM800(SIM800_TX_PIN,SIM800_RX_PIN);
+char buffes[8];
+char buffser[16];
+int check = 0;
+int Timp;
+int morch;
+int Nior;
+void setup() {
+//Begin serial comunication with Arduino and Arduino IDE (Serial Monitor)
+/* Serial.begin(9600);
+while(!Serial);*/
+pinMode(2,OUTPUT);
+pinMode(3,OUTPUT);
+
+pinMode(4,OUTPUT);
+pinMode(5,OUTPUT);
+pinMode(6,OUTPUT);
+Servo1.attach(servoPin);
+//Being serial communication witj Arduino and SIM800
+delay(3000);
+serialSIM800.begin(9600);
+delay(3000);
+serialSIM800.println("AT");
+delay(500);
+serialSIM800.println("AT+CMGF = 1");
+delay(500);
+serialSIM800.println("AT+CSCS=\"GSM\"\r");
+delay(500);
+serialSIM800.println("AT+CSMP=17,167,0,0");
+delay(500);
+serialSIM800.println("AT+CNMI=1,2,0,0");
+delay(500);
+serialSIM800.println("AT+CMGS=\"+989337771201\"\r\n");
+delay(100);
+serialSIM800.println("Sim800 rah Andazi Shod!");
+delay(100);
+serialSIM800.print((char)26);
+// Serial.println("Setup Complete!");
+}
+void loop() {
+//Read SIM800 output (if available) and print it in Arduino IDE Serial Monitor
+if(serialSIM800.available()){
+if(check == 0)
+{
+
+buffes[0] = serialSIM800.read();
+}
+else
+{
+check = 0;
+}
+// Serial.write(buffes[0]);
+if(toupper(buffes[0]) == 'C')
+{
+while(serialSIM800.available()<1){} buffes[1] = serialSIM800.read();
+if(toupper(buffes[1]) == 'O')
+{
+while(serialSIM800.available()<1){} buffes[2] = serialSIM800.read();
+if(toupper(buffes[2]) == 'L')
+{
+while(serialSIM800.available()<1){} buffes[3] = serialSIM800.read();
+if(buffes[3] == ' ')
+{
+while(serialSIM800.available()<1){} buffes[4] = serialSIM800.read();
+while(serialSIM800.available()<1){} buffes[5] = serialSIM800.read();
+if(toupper(buffes[4]) == 'O' && toupper(buffes[5]) == 'N')
+{
+// Serial.write("Cooler is ON!");
+digitalWrite(clrPin,HIGH);
+}
+else if(toupper(buffes[4]) == 'O' && toupper(buffes[5]) == 'F')
+{
+while(serialSIM800.available()<1){} buffes[6] = serialSIM800.read();
+// Serial.write(buffes[6]);
+if(toupper(buffes[6]) == 'F'){
+//Serial.write("Cooler is OFF!");
+
+digitalWrite(clrPin,LOW);
+}
+}
+}
+else
+{
+buffes[0] = buffes[3];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[2];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[1];
+check = 1;
+}
+}
+if(toupper(buffes[0]) == 'M')
+{
+while(serialSIM800.available()<1){} buffes[1] = serialSIM800.read();
+if(toupper(buffes[1]) == 'O')
+{
+while(serialSIM800.available()<1){} buffes[2] = serialSIM800.read();
+if(toupper(buffes[2]) == 'T')
+{
+//Serial.write("MOTOR IS going");
+
+if(morch == 1) //if it had been rotated
+{
+Servo1.write(0); //dont rotate
+morch = 0;
+}
+else if(morch == 0) //if it dad not been rotated
+{
+Servo1.write(90); // rotate (90)
+morch = 1;
+}
+delay(500);
+//Serial.write("\r\nMotor has Stopped!");
+}
+else
+{
+buffes[0] = buffes[2];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[1];
+check = 1;
+}
+}
+if(toupper(buffes[0]) == 'H')
+{
+while(serialSIM800.available()<1){} buffes[1] = serialSIM800.read();
+if(toupper(buffes[1]) == 'T')
+{
+
+while(serialSIM800.available()<1){} buffes[2] = serialSIM800.read();
+if(toupper(buffes[2]) == 'R')
+{
+while(serialSIM800.available()<1){} buffes[3] = serialSIM800.read();
+if(buffes[3] == ' ')
+{
+while(serialSIM800.available()<1){} buffes[4] = serialSIM800.read();
+while(serialSIM800.available()<1){} buffes[5] = serialSIM800.read();
+if(toupper(buffes[4]) == 'O' && toupper(buffes[5]) == 'N')
+{
+digitalWrite(htrPin,HIGH);
+//Serial.write("Heater is ON!");
+}
+else if(toupper(buffes[4]) == 'O' && toupper(buffes[5]) == 'F')
+{
+while(serialSIM800.available()<1){} buffes[6] = serialSIM800.read();
+if(toupper(buffes[6]) == 'F')
+{
+//Serial.write("Heater is OFF!");
+digitalWrite(htrPin,LOW);
+}
+}
+}
+else
+{
+buffes[0] = buffes[3];
+check = 1;
+}
+}
+else
+{
+
+buffes[0] = buffes[2];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[1];
+check = 1;
+}
+}
+if(toupper(buffes[0]) == 'L')
+{
+while(serialSIM800.available()<1){} buffes[1] = serialSIM800.read();
+if(buffes[1] == '1' || buffes[1] == '2')
+{
+while(serialSIM800.available()<1){} buffes[2] = serialSIM800.read();
+if(buffes[2] == ' ')
+{
+while(serialSIM800.available()<1){} buffes[3] = serialSIM800.read();
+while(serialSIM800.available()<1){} buffes[4] = serialSIM800.read();
+if(toupper(buffes[3]) == 'O' && toupper(buffes[4]) == 'N' )
+{
+if(buffes[1] == '1'){
+/*Serial.write("LeD 1 is ON");*/digitalWrite(l1Pin,HIGH);}
+if(buffes[1] == '2'){
+/* Serial.write("LeD 2 is ON");*/digitalWrite(l2Pin,HIGH);}
+}
+else if(toupper(buffes[3]) == 'O' && toupper(buffes[4]) == 'F')
+{
+while(serialSIM800.available()<1){} buffes[5] = serialSIM800.read();
+if(toupper(buffes[5]) == 'F' && buffes[1] == '1'){
+
+//Serial.write("LeD 1 is OFF");
+digitalWrite(l1Pin,LOW);
+}
+if(toupper(buffes[5]) == 'F' && buffes[1] == '2'){
+//Serial.write("LeD 2 is OFF");
+digitalWrite(l2Pin,LOW);
+}
+}
+}
+else
+{
+buffes[0] = buffes[2];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[1];
+check = 1;
+}
+}
+if(toupper(buffes[0]) == 'N')
+{
+while(serialSIM800.available()<1){} buffes[1] = serialSIM800.read();
+if(toupper(buffes[1]) == 'O')
+{
+while(serialSIM800.available()<1){} buffes[2] = serialSIM800.read();
+if(toupper(buffes[2]) == 'O')
+{
+while(serialSIM800.available()<1){} buffes[3] = serialSIM800.read();
+if(toupper(buffes[3]) == 'R')
+
+{
+Nior = analogRead(0);
+Nior = (Nior*10);
+sprintf(buffser,"Noor:%d\r\n",Nior);
+serialSIM800.println("AT+CMGS=\"+989337771201\"\r\n");
+delay(100);
+serialSIM800.println(buffser);
+delay(100);
+serialSIM800.print((char)26);
+}
+else
+{
+buffes[0] = buffes[3];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[2];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[1];
+check = 1;
+}
+}
+if(toupper(buffes[0]) == 'T')
+{
+while(serialSIM800.available()<1){} buffes[1] = serialSIM800.read();
+
+if(toupper(buffes[1]) == 'E')
+{
+while(serialSIM800.available()<1){} buffes[2] = serialSIM800.read();
+if(toupper(buffes[2]) == 'M')
+{
+while(serialSIM800.available()<1){} buffes[3] = serialSIM800.read();
+if(toupper(buffes[3]) == 'P')
+{
+Timp = analogRead(1);
+Timp = (Timp/2);
+sprintf(buffser,"Dama:%d\r\n",Timp);
+serialSIM800.println("AT+CMGS=\"+989337771201\"\r\n");
+delay(100);
+serialSIM800.println(buffser);
+delay(100);
+serialSIM800.print((char)26);
+}
+else
+{
+buffes[0] = buffes[3];
+check = 1;
+}
+}
+else
+{
+buffes[0] = buffes[2];
+check = 1;
+}
+}
+else
+{
+
+buffes[0] = buffes[1];
+check = 1;
+}
+}
+//Read Arduino IDE Serial Monitor inputs (if available) and send them to SIM800
+/*if(Serial.available()){
+serialSIM800.write(Serial.read());*/
+// }
+}
+}

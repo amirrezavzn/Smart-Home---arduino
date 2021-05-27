@@ -1,0 +1,89 @@
+#include <SoftwareSerial.h>
+#include <stdio.h>
+#include <Servo.h>
+//pin numbers :
+int cooler = 2;
+int heater = 3 ;
+int light = 4;
+int servo_pin = 6 ;
+Servo servo_motor ;
+//variables :
+int received = 0 ;
+int cooler_state = 0 ;
+int heater_state =0 ;
+int light_state = 0;
+int servo_state = 0;
+void setup() {
+// put your setup code here, to run once:
+Serial.begin(9600);
+pinMode(cooler,OUTPUT) ;
+pinMode(heater,OUTPUT) ;
+pinMode(light,OUTPUT) ;
+pinMode(servo_pin,OUTPUT) ;
+servo_motor.attach(servo_pin);
+
+}
+void loop() {
+// put your main code here, to run repeatedly:
+if(Serial.available()>0)
+{
+received = Serial.read();
+}
+////////////////// light /////////////////////
+if (light_state ==0 && received =='l') //if light is off, turn it on
+{
+digitalWrite(light,HIGH);
+light_state = 1;
+received = 0 ;
+}
+if (light_state ==1 && received =='l') //if light is on, turn it off
+{
+digitalWrite(light,LOW);
+light_state = 0;
+received = 0 ;
+}
+//****************************************//
+////////////////// cooler ////////////////////
+if (cooler_state ==0 && received== 'c') //if cooler is off, turn it on
+{
+digitalWrite(cooler, HIGH);
+cooler_state = 1 ;
+
+received = 0 ;
+}
+if (cooler_state ==1 && received== 'c') //if cooler is on, turn it off
+{
+digitalWrite(cooler, LOW);
+cooler_state = 0 ;
+received = 0 ;
+}
+//************************************//
+////////////////// heater /////////////////
+if (heater_state ==0 && received =='h') //if heater is off, turn it on
+{
+digitalWrite(heater,HIGH);
+heater_state = 1;
+received = 0 ;
+}
+if (heater_state ==1 && received =='h') //if cooler is on, turn it off
+{
+digitalWrite(heater,LOW);
+heater_state = 0;
+received = 0 ;
+}
+
+//************************************//
+////////////////// motor /////////////////
+if (servo_state ==0 && received =='m')
+{
+servo_motor.write(90); ///rotate 90
+servo_state = 1;
+received = 0 ;
+}
+if (servo_state ==1 && received =='m')
+{
+servo_motor.write(0); //dont rotate
+servo_state = 0;
+received = 0 ;
+}
+}
